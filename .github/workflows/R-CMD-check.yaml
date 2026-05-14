@@ -56,7 +56,7 @@ jobs:
 
       - name: fix windows repository
         run: |
-          rv.exe configure repository remove prism
+          rv.exe configure repository remove PRISM
           rv.exe configure repository add PPM --url https://packagemanager.posit.co/cran/2026-05-10
         shell: cmd
         if: runner.os == 'Windows'
