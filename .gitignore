@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.Rdata
+.DS_Store
+inst/doc
+/Meta/
+/doc/
+docs
+.venv

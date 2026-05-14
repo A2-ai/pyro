@@ -1,0 +1,16 @@
+use_lockfile = false
+
+[project]
+name = "pyro"
+r_version = "4.5"
+
+repositories = [
+	{ alias = "PRISM", url = "https://prism.dev.a2-ai.cloud/rpkgs/stratus/2026-04-16/" },
+	{ alias = "ppm", url = "https://packagemanager.posit.co/cran/latest"},
+	{ alias = "CRAN", url = "https://cran.r-project.org"},
+]
+
+dependencies = [
+	{ name = "pyro", path = ".", dependencies_only = true, install_suggestions = true },
+	"devtools",
+]
