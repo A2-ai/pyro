@@ -54,12 +54,19 @@ jobs:
         shell: pwsh
         if: runner.os == 'Windows'
 
+      - name: fix windows repository
+        run: |
+          rv.exe configure repository remove prism
+          rv.exe configure repository add PPM --url https://packagemanager.posit.co/cran/2026-05-10
+        shell: cmd
+        if: runner.os == 'Windows'
+
       - name: rv-plan
         run: rv plan
         if: runner.os != 'Windows'
 
       - name: rv-plan (Windows)
-        run: rv.exe plan
+        run: rv.exe plan -vvv
         shell: cmd
         if: runner.os == 'Windows'
 
@@ -81,7 +88,7 @@ jobs:
         if: runner.os != 'Windows'
 
       - name: rv-sync (Windows)
-        run: rv.exe sync
+        run: rv.exe sync -vvv
         shell: cmd
         if: runner.os == 'Windows'
 
