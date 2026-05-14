@@ -7,7 +7,7 @@
 #' name) before lock and sync.
 #'
 #' The project's `pyproject.toml` is the source of truth. pyro
-#' seeds it on first call but never modifies an existing toml — group
+#' seeds it on first call but never modifies an existing toml, group
 #' upserts are the responsibility of sibling-package wrappers via
 #' [write_group_to_pyproject()].
 #'
@@ -164,7 +164,7 @@ initialize_python <- function(continue = NULL,
 #' `groups = NULL`). Pins are copied verbatim from the bundled spec.
 #'
 #' Caller is responsible for ensuring the toml does not already exist.
-#' Errors if `proj_dir` does not exist — seeding never creates the
+#' Errors if `proj_dir` does not exist, seeding never creates the
 #' project directory itself.
 #'
 #' @param proj_dir Project root directory. Must exist.
@@ -198,7 +198,7 @@ seed_pyproject <- function(proj_dir, groups = NULL) {
       log4r::warn(.le$logger, paste0(
         "Seeding requested groups not in bundled spec: ",
         paste(missing, collapse = ", "),
-        " — these will seed empty"
+        ", these will seed empty"
       ))
     }
     groups
