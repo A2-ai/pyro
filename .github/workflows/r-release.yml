@@ -71,7 +71,10 @@ jobs:
           [
             {"runner": "macos-14", "os": "macos", "arch": "arm64", "r": "4.4"},
             {"runner": "macos-14", "os": "macos", "arch": "arm64", "r": "4.5"},
-            {"runner": "macos-14", "os": "macos", "arch": "arm64", "r": "4.6"}
+            {"runner": "macos-14", "os": "macos", "arch": "arm64", "r": "4.6"},
+            {"runner": "windows-latest", "os": "windows", "arch": "x64", "r": "4.4"},
+            {"runner": "windows-latest", "os": "windows", "arch": "x64", "r": "4.5"},
+            {"runner": "windows-latest", "os": "windows", "arch": "x64", "r": "4.6"}
           ]
           JSON
           )
@@ -338,6 +341,15 @@ jobs:
           (Get-Content rproject.toml) -replace '^r_version = "4\.[0-9\.]+"$', "r_version = `"$rVersion`"" | Set-Content rproject.toml
           Get-Content rproject.toml
         shell: pwsh
+        if: runner.os == 'Windows'
+
+      # Windows binaries for CRAN packages live on PPM, not PRISM. Without this
+      # swap, rv would fall back to source compilation of every dep on Windows.
+      - name: Swap PRISM for PPM (Windows)
+        run: |
+          rv.exe configure repository remove PRISM
+          rv.exe configure repository add PPM --url https://packagemanager.posit.co/cran/2026-05-10
+        shell: cmd
         if: runner.os == 'Windows'
 
       - name: rv-sync
