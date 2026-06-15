@@ -76,7 +76,7 @@ else
     echo "uv $installed_ver != required $UV_VERSION; installing $UV_VERSION..."
     install_uv "$UV_VERSION"
   else
-    echo "uv $installed_ver matches required version."
+    echo "Using existing uv $installed_ver."
   fi
 fi
 
