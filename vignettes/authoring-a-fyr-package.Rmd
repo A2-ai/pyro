@@ -1,0 +1,59 @@
+---
+title: "Authoring a fyr-package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Authoring a fyr-package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+A sibling fyr-package composes the two halves of the `pyro` contract: declare
+a dependency group, then materialize it.
+
+```r
+my_initialize <- function() {
+  pyro::write_group_to_pyproject(
+    name = "mypkg",
+    deps = c("pillow==11.1.0", "requests==2.31.0")
+  )
+  pyro::initialize_python(groups = "mypkg")
+}
+```
+
+The split between the two calls is deliberate. `write_group_to_pyproject()`
+declares intent and stops there, it returns without touching uv, Python, or
+the network, so it is safe to call repeatedly and cheap to compose. Nothing
+is installed until `initialize_python()` runs. That separation is what lets
+several wrappers each register a group and then sync exactly once, instead of
+every wrapper triggering its own resolve mid-chain.
+
+`deps` is where pin ownership is decided. For a group `pyro` already blesses
+(`reportifyr`, `presentifyr`), omit it and the pins are read straight from the
+bundled reference spec, the wrapper inherits whatever `pyro` ships and stays
+in lockstep with it. Pass `deps` explicitly and those become the project's
+pins, with `pyro` staying out of the way. A third-party app has no blessed
+entry to fall back on, so it must always supply `deps`.
+
+## Conventions and overrides
+
+- **`venv_dir`** throughout the codebase means the *parent directory* of
+  `.venv/` (i.e. the project root when the venv lives at
+  `<project_root>/.venv/`). Preserved for compatibility with existing
+  `reportifyr` and `presentifyr` projects.
+- **`pyproject_dir`** lets non-default project layouts (LLM agents, monorepos,
+  closed-source projects with a secret toml elsewhere) point `pyro` at an
+  alternate location. Must already exist; `pyro` does not create project
+  directories.
+- **`getOption("venv_dir")`** caches the resolved project root after the first
+  init; later calls in the same R session skip re-resolution.
+- **`getOption("uv.version")`** pins the uv binary version. If unset, `pyro`
+  uses whatever uv is already installed, or falls back to `0.7.8` on a clean
+  machine.

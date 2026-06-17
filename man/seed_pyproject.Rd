@@ -20,7 +20,7 @@ containing the requested groups (or all bundled groups when
 }
 \details{
 Caller is responsible for ensuring the toml does not already exist.
-Errors if \code{proj_dir} does not exist — seeding never creates the
+Errors if \code{proj_dir} does not exist, seeding never creates the
 project directory itself.
 }
 \keyword{internal}

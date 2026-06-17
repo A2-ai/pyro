@@ -6,7 +6,7 @@ Authors@R: c(
     person("Matthew", "Smith", , "matthews@a2-ai.com", role = "aut")
   )
 Description: Provides uv-backed Python virtual-environment management for
-    the fyre ecosystem (reportifyr, presentifyr R packages).
+    the fyr ecosystem (reportifyr, presentifyr R packages).
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,7 +19,10 @@ Imports:
     processx,
     rlang
 Suggests:
+    knitr,
     mockery,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
+VignetteBuilder: knitr
 Config/testthat/edition: 3
