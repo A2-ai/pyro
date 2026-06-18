@@ -1,0 +1,49 @@
+---
+title: "How pyro works"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How pyro works}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+`pyro` treats the **project's own `pyproject.toml`** as the source of truth
+for Python dependencies. `pyro` never owns or rewrites the user's pins.
+
+## The lifecycle
+
+A call to `initialize_python()` walks four steps:
+
+1.  **Seed (first init only).** If the project has no `pyproject.toml`,
+    `initialize_python()` seeds one from `pyro`'s bundled reference spec
+    (`inst/extdata/pyproject.toml`). The seed is templated with the
+    project's directory name and the requested dependency groups.
+2.  **Register groups.** Sibling packages (or third-party apps) call
+    `write_group_to_pyproject("name")` to idempotently merge their
+    dependency group into `[dependency-groups]`. User-pinned versions are
+    preserved on conflict.
+3.  **Audit.** Before sync, `initialize_python()` reports any pins that
+    have drifted from the bundled reference spec. The user's pins win and
+    drift is surfaced as information, not corrected.
+4.  **Lock + sync.** uv refreshes `uv.lock` against the project toml, then
+    `uv sync --frozen` materializes `.venv/`. With no `groups` argument the
+    sync is `--all-groups`; with one or more groups it is
+    `--inexact --group <g>` so sibling fyr-packages coexist additively.
+
+## Reference vs. installed set
+
+The bundled spec is a **reference**, not the installed set. Bumping a pin in
+`pyro` does not retroactively change projects whose `pyproject.toml` already
+exists. Pins are kept and the next init surfaces the drift.
+
+This is the central guarantee: a project's environment is reproducible from
+*its own* `pyproject.toml` + `uv.lock`, regardless of what version of `pyro`
+seeded it or what the current bundled reference happens to pin.

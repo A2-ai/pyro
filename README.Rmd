@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-`pyro` is the shared uv/Python plumbing for the `fyre` R-package
+`pyro` is the shared uv/Python plumbing for the `fyr` R-package
 ecosystem (`reportifyr` and `presentifyr`). It wraps the
 [uv](https://github.com/astral-sh/uv) CLI to install uv itself, if
 missing, manage a project-local `pyproject.toml`, and materialize a
@@ -38,29 +38,14 @@ pak::pkg_install("a2-ai/pyro")
 
 `pyro` treats the **project's own `pyproject.toml`** as the source
 of truth for Python dependencies. `pyro` never owns or rewrites the
-user's pins.
+user's pins. A call to `initialize_python()` walks four steps: seed
+(first init only), register groups, audit drift, then lock + sync the
+`.venv/`, and the bundled spec is a *reference*, not the installed
+set, so bumping a pin in `pyro` never retroactively changes an
+existing project.
 
-1.  **Seed (first init only).** If the project has no `pyproject.toml`,
-    `initialize_python()` seeds one from `pyro`'s bundled reference
-    spec (`inst/extdata/pyproject.toml`). The seed is templated with
-    the project's directory name and the requested dependency groups.
-2.  **Register groups.** Sibling packages (or third-party apps) call
-    `write_group_to_pyproject("name")` to idempotently merge their
-    dependency group into `[dependency-groups]`. User-pinned versions
-    are preserved on conflict.
-3.  **Audit.** Before sync, `initialize_python()` reports any pins that
-    have drifted from the bundled reference spec. The user's pins win
-    and drift is surfaced as information, not corrected.
-4.  **Lock + sync.** uv refreshes `uv.lock` against the project toml,
-    then `uv sync --frozen` materializes `.venv/`. With no `groups`
-    argument the sync is `--all-groups`; with one or more groups it is
-    `--inexact --group <g>` so sibling fyr-packages coexist
-    additively.
-
-The bundled spec is a **reference**, not the installed set. Bumping a
-pin in `pyro` does not retroactively change projects whose
-`pyproject.toml` already exists. Pins are kept and the next
-init surfaces the drift.
+For the full lifecycle and the reference-vs-installed-set guarantee,
+see `vignette("how-it-works")`.
 
 ## Quick start
 
@@ -134,24 +119,9 @@ my_initialize <- function() {
 `write_group_to_pyproject()` is purely a TOML edit; `initialize_python()`
 does the install. Splitting them lets a wrapper register its group
 declaratively without forcing a sync (e.g. when chaining multiple
-wrappers).
+wrappers). For groups `pyro`'s bundled spec already knows about
+(`reportifyr`, `presentifyr`), omit `deps` to force the bundled pins;
+third-party apps must supply `deps` explicitly.
 
-For groups that `pyro`'s bundled spec already knows about
-(`reportifyr`, `presentifyr`), omit `deps` forces the bundled pins to be
-used. Third-party apps must supply `deps` explicitly.
-
-## Conventions and overrides
-
-- **`venv_dir`** throughout the codebase means the *parent directory*
-  of `.venv/` (i.e. the project root when the venv lives at
-  `<project_root>/.venv/`). Preserved for compatibility with existing
-  `reportifyr` and `presentifyr` projects.
-- **`pyproject_dir`** lets non-default project layouts (LLM agents,
-  monorepos, closed-source projects with a secret toml elsewhere)
-  point `pyro` at an alternate location. Must already exist;
-  `pyro` does not create project directories.
-- **`getOption("venv_dir")`** caches the resolved project root after
-  the first init; later calls in the same R session skip re-resolution.
-- **`getOption("uv.version")`** pins the uv binary version. If unset,
-  `pyro` uses whatever uv is already installed, or falls back to
-  `0.7.8` on a clean machine.
+See `vignette("authoring-a-fyr-package")` for the full contract and the
+`venv_dir` / `pyproject_dir` / `getOption()` conventions and overrides.

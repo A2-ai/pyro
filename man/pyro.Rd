@@ -13,30 +13,23 @@ installing pinned Python dependencies, and running Python scripts.
 }
 \section{Public API}{
 
+All exported functions are part of the public API and may be called
+directly by sibling fyr packages and third-party projects.
 \itemize{
 \item \code{\link{initialize_python}}: Bootstraps uv (if missing),
 creates a \verb{.venv/}, and installs the requested Python packages.
-\item \code{\link{get_venv_uv_paths}}: Resolves the paths to the uv
-binary and the project's \verb{.venv/} directory. Used by host packages
-before invoking Python scripts.
 \item \code{\link{write_group_to_pyproject}}: Idempotent merge
 helper for sibling and third-party packages to wire their Python
 dependency group into the project's \code{pyproject.toml}.
-}
-}
-
-\section{Internal helpers (exported for sibling packages)}{
-
-These are declared with \verb{@keywords internal} and are not a stable
-public API. They are listed in NAMESPACE so sibling fyr packages can
-call them directly without triple-colon.
-\itemize{
 \item \code{\link{get_proj_dir}}: Project-root resolver (reads
 \code{getOption("venv_dir")} then falls back to \code{here::here()}).
+\item \code{\link{get_venv_uv_paths}}: Resolves the paths to the uv
+binary and the project's \verb{.venv/} directory. Used by host packages
+before invoking Python scripts.
+\item \code{\link{run_python_script}}: Invokes a Python script
+inside the uv-managed venv via processx.
 \item \code{\link{get_uv_path}}, \code{\link{get_uv_version}}: uv
 binary resolution and version detection.
-\item \code{\link{run_python_script}}: invokes a Python script
-inside the uv-managed venv via processx.
 }
 }
 
@@ -44,10 +37,11 @@ inside the uv-managed venv via processx.
 
 pyro writes log lines through an internal \code{log4r} logger whose
 threshold is read from \code{getOption("pyro.verbose", "WARN")} on
-each emission. To change verbosity, simply set the option:
-\preformatted{options(pyro.verbose = "DEBUG")}
-No reload or toggle call is required; the next log call reflects the
-new level. Use \verb{withr::with_options(list(pyro.verbose = "DEBUG"), \\\{...\\\})} to scope a verbose level to a single block.
+each emission. To change verbosity, set the option
+\code{options(pyro.verbose = "DEBUG")}. No reload or toggle call is
+required; the next log call reflects the new level. Use
+\code{withr::with_options(list(pyro.verbose = "DEBUG"), ...)} to scope a
+verbose level to a single block.
 }
 
 \author{

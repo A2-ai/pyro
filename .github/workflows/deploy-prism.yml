@@ -60,13 +60,18 @@ on:
       registry:
         description: 'PRISM registry name to update'
         required: false
-        default: 'FIXME'
+        default: 'fyrverse'
         type: string
       edition:
         description: 'PRISM edition name to update'
         required: false
-        default: 'FIXME'
+        default: 'v1'
         type: string
+      no_sys_deps:
+        description: 'Declare this package''s linux binaries portable across distros (sends ?no_sys_deps=true on linux binary uploads)'
+        required: false
+        default: false
+        type: boolean
 
 # Prevent concurrent deploys for the same release.
 concurrency:
@@ -78,13 +83,13 @@ env:
   # Auto-deploy configuration
   # These values are used when the workflow is triggered automatically after
   # a successful R Release. Manual dispatch overrides them via inputs above.
-  # FIXME: Set these to match your PRISM registry and edition.
   # ===========================================================================
-  AUTO_UPDATE_EDITION: 'true'      # Push this version into a shared edition
+  AUTO_UPDATE_EDITION: 'true'       # Push this version into the shared edition
   AUTO_CREATE_EDITION: 'false'      # Create an individual package edition (package_name/package_version)
   AUTO_LATEST_EDITION: 'false'      # Mark the individual package edition as "latest"
-  REGISTRY: 'fyrverse'                 # FIXME: Your PRISM registry name (e.g. 'my-org-registry')
-  EDITION: 'v1'                  # FIXME: Your PRISM edition name (e.g. 'dev', 'stable', 'prod')
+  REGISTRY: 'fyrverse'              # PRISM registry name
+  EDITION: 'v1'                     # PRISM edition name
+  NO_SYS_DEPS: 'true'               # pyro is pure R (no src/); its linux binaries link no system libraries
 
 jobs:
   # ===========================================================================
@@ -146,6 +151,7 @@ jobs:
       latest_edition: ${{ steps.resolve.outputs.latest_edition }}
       registry: ${{ steps.resolve.outputs.registry }}
       edition: ${{ steps.resolve.outputs.edition }}
+      no_sys_deps: ${{ steps.resolve.outputs.no_sys_deps }}
     steps:
       # When triggered by workflow_run, grab the manifest from the build.
       - name: Download manifest artifact (workflow_run)
@@ -188,6 +194,7 @@ jobs:
             LATEST_EDITION="${{ env.AUTO_LATEST_EDITION }}"
             REGISTRY="${{ env.REGISTRY }}"
             EDITION="${{ env.EDITION }}"
+            NO_SYS_DEPS="${{ env.NO_SYS_DEPS }}"
           else
             # Manual dispatch: use inputs directly
             TAG="${{ inputs.tag }}"
@@ -198,6 +205,7 @@ jobs:
             LATEST_EDITION="${{ inputs.latest_edition }}"
             REGISTRY="${{ inputs.registry }}"
             EDITION="${{ inputs.edition }}"
+            NO_SYS_DEPS="${{ inputs.no_sys_deps }}"
           fi
 
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
@@ -208,6 +216,7 @@ jobs:
           echo "latest_edition=${LATEST_EDITION}" >> $GITHUB_OUTPUT
           echo "registry=${REGISTRY}" >> $GITHUB_OUTPUT
           echo "edition=${EDITION}" >> $GITHUB_OUTPUT
+          echo "no_sys_deps=${NO_SYS_DEPS}" >> $GITHUB_OUTPUT
 
   # ===========================================================================
   # DEPLOY
@@ -228,6 +237,7 @@ jobs:
           prism_api_url: ${{ vars.PRISM_API_URL }}
           auth_token: ${{ secrets.PRISM_API_TOKEN }}
           release_tag: ${{ needs.resolve-inputs.outputs.tag }}
+          no_sys_deps: ${{ needs.resolve-inputs.outputs.no_sys_deps }}
 
       # -- Update a shared edition (e.g. "dev" or "prod") --------------------
       # This adds (or bumps) your package in the named registry/edition.

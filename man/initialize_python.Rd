@@ -54,7 +54,7 @@ name) before lock and sync.
 }
 \details{
 The project's \code{pyproject.toml} is the source of truth. pyro
-seeds it on first call but never modifies an existing toml — group
+seeds it on first call but never modifies an existing toml, group
 upserts are the responsibility of sibling-package wrappers via
 \code{\link[=write_group_to_pyproject]{write_group_to_pyproject()}}.
 }

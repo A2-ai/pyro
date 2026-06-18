@@ -87,7 +87,7 @@ if (-not $uvCmd) {
         Write-Host "uv $installedVer != required $UvVersion; installing $UvVersion..."
         Install-Uv -Version $UvVersion
     } else {
-        Write-Host "uv $installedVer matches required version."
+        Write-Host "Using existing uv $installedVer."
     }
 }
 
