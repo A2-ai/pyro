@@ -238,6 +238,9 @@ jobs:
           auth_token: ${{ secrets.PRISM_API_TOKEN }}
           release_tag: ${{ needs.resolve-inputs.outputs.tag }}
           no_sys_deps: ${{ needs.resolve-inputs.outputs.no_sys_deps }}
+          # PRISM rejects Windows .zip binaries ("invalid gzip header"); skip them
+          # at upload. They stay attached to the GitHub release for direct download.
+          skip: windows
 
       # -- Update a shared edition (e.g. "dev" or "prod") --------------------
       # This adds (or bumps) your package in the named registry/edition.
