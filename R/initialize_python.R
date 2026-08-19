@@ -280,12 +280,15 @@ continue <- function() {
       "Prompting user for confirmation to install uv, Python,
 			and the pinned Python dependencies to your local files."
     )
-    readline(
-      "If uv, Python, and Python dependencies are not installed, this
-			\nwill install them. If your project has no pyproject.toml,
-			\none will be created at the project root.
-			\nAre you sure you want to continue? [Y/n]\n"
+
+    message(
+      paste(
+        "If uv, Python, and Python dependencies are not installed, this",
+        "will install them. If your project has no pyproject.toml, one will",
+        "be created at the project root."
+      )
     )
+    readline("Are you sure you want to continue? [Y/n] ")
   } else {
     log4r::info(
       .le$logger,
