@@ -13,9 +13,11 @@
 #' @param script_name Human-readable label used in the error message.
 #' @param pythonpath Optional directory to expose as `PYTHONPATH` (for
 #'   host packages whose Python modules live under their `inst/python/`).
-#' @param stderr_callback Optional `function(chunk, proc)` callback passed
-#'   to [processx::run()] as `stderr_callback`. If `NULL`, stderr is
-#'   streamed to the console unchanged via `cat()`.
+#' @param stderr_callback Optional `function(line, proc)` callback invoked
+#'   once per complete line of stderr, with the line terminator stripped.
+#'   If `NULL`, stderr is streamed to the console via `cat()`. Lines are
+#'   reassembled before dispatch, so a callback never sees a partial line
+#'   (see Details).
 #' @param verbose_env Optional name of an environment variable to surface
 #'   to the subprocess (for example, the caller's verbosity control).
 #'
@@ -52,20 +54,62 @@ run_python_script <- function(uv_path,
 
   cb <- stderr_callback %||% default_stderr_callback
 
-  tryCatch(
+  result <- tryCatch(
     processx::run(
-      command         = uv_path,
-      args            = args,
-      env             = env_vars,
-      stderr_callback = cb,
-      error_on_status = TRUE
+      command              = uv_path,
+      args                 = args,
+      env                  = env_vars,
+      stderr_line_callback = cb,
+      error_on_status      = TRUE
     ),
     error = function(e) {
+      flush_partial_line(e$stderr, cb)
       stop(paste0(script_name, " failed."), call. = FALSE)
     }
   )
+  flush_partial_line(result$stderr, cb)
+
+  result
 }
 
-default_stderr_callback <- function(chunk, proc) {
-  cat(chunk)
+#' Default stderr handler: echo each line to the console
+#'
+#' Used when a caller supplies no `stderr_callback`. Line callbacks receive the
+#' line with its terminator stripped, so the newline is re-added here — without
+#' it, a subprocess' output would arrive as one run-together blob.
+#'
+#' @param line One complete line of stderr.
+#' @param proc The processx handle, unused.
+#'
+#' @keywords internal
+#' @noRd
+default_stderr_callback <- function(line, proc) {
+  cat(line, "\n", sep = "")
+}
+
+#' Deliver a trailing line that processx withheld
+#'
+#' processx's line callbacks buffer an incomplete trailing line waiting for
+#' the newline that closes it. If the process exits without writing one, that
+#' buffer is discarded and the callback never sees the line. The captured
+#' stderr is complete either way, so the withheld line is whatever follows the
+#' last newline.
+#'
+#' @param stderr_text Captured stderr, from the [processx::run()] result or
+#'   from the error condition it throws.
+#' @param cb The stderr line callback.
+#'
+#' @keywords internal
+#' @noRd
+flush_partial_line <- function(stderr_text, cb) {
+  if (is.null(stderr_text) || !nzchar(stderr_text)) {
+    return(invisible(NULL))
+  }
+  if (endsWith(stderr_text, "\n")) {
+    return(invisible(NULL))
+  }
+  lines <- strsplit(stderr_text, "\r?\n")[[1]]
+  cb(lines[[length(lines)]], NULL)
+
+  invisible(NULL)
 }
