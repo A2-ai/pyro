@@ -55,15 +55,18 @@ initialize_python <- function(continue = NULL,
 
   if (is.null(pyproject_dir)) pyproject_dir <- venv_dir
 
+  message("Preparing Python environment in ", venv_dir)
+
   if (is.null(continue)) continue <- continue()
   if (is.logical(continue)) continue <- if (continue) "Y" else "n"
+  if (!nzchar(trimws(continue))) continue <- "Y"
 
   if (tolower(continue) != "y") {
     if (continue == "n") {
       log4r::info(.le$logger, "User declined installation. No changes made.")
-      message(
-        "User declined installation of uv, Python, and Python dependencies.\n
-        Full functionality will not be available."
+      pyro_message(
+        "Installation declined. Python-backed features will not be ",
+        "available until initialize_python() is run."
       )
     } else {
       log4r::error(.le$logger, "Invalid response from user. Must enter Y or n.")
@@ -83,7 +86,12 @@ initialize_python <- function(continue = NULL,
   toml_path <- file.path(pyproject_dir, "pyproject.toml")
   if (!file.exists(toml_path)) {
     seed_pyproject(pyproject_dir, groups)
-    message(paste0("Seeded ", toml_path, " from pyro's bundled spec."))
+    shown <- if (identical(pyproject_dir, venv_dir)) {
+      "pyproject.toml"
+    } else {
+      toml_path
+    }
+    message("Seeded ", shown, " from pyro's bundled spec")
   }
 
   audit_pins(pyproject_dir, groups)
@@ -131,7 +139,11 @@ initialize_python <- function(continue = NULL,
     log4r::info(.le$logger, paste0(
       "ps_args: ", paste(ps_args, collapse = ", ")
     ))
-    result <- processx::run(command = "powershell.exe", args = ps_args)
+    result <- processx::run(
+      command = "powershell.exe",
+      args = ps_args,
+      stdout_line_callback = echo_line
+    )
   } else {
     sh_args <- c(venv_dir, pyproject_dir, uv_version)
     if (!is.null(groups) && length(groups) > 0) {
@@ -140,17 +152,18 @@ initialize_python <- function(continue = NULL,
     log4r::info(.le$logger, paste0(
       "sh_args: ", paste(sh_args, collapse = ", ")
     ))
-    result <- processx::run(command = cmd, args = sh_args)
+    result <- processx::run(
+      command = cmd,
+      args = sh_args,
+      stdout_line_callback = echo_line
+    )
   }
 
   if (is_new_env) {
     log4r::info(.le$logger, paste("Virtual environment created at:", venv_path))
-    message(paste("Created Python virtual environment at", venv_path))
   } else {
     log4r::info(.le$logger, paste("Virtual environment synced at:", venv_path))
   }
-
-  message(result$stdout)
 
   log4r::debug(.le$logger, "Exiting initialize_python function")
   invisible(NULL)
@@ -281,14 +294,12 @@ continue <- function() {
 			and the pinned Python dependencies to your local files."
     )
 
-    message(
-      paste(
-        "If uv, Python, and Python dependencies are not installed, this",
-        "will install them. If your project has no pyproject.toml, one will",
-        "be created at the project root."
-      )
+    pyro_message(
+      "Anything missing (uv, Python, the pinned dependencies) will be ",
+      "installed. A pyproject.toml is created if the project has none.",
+      indent = 2L
     )
-    readline("Are you sure you want to continue? [Y/n] ")
+    readline("Continue? [Y/n] ")
   } else {
     log4r::info(
       .le$logger,
@@ -296,4 +307,20 @@ continue <- function() {
     )
     "Y"
   }
+}
+
+#' Relay one line of installer output to the console
+#'
+#' The setup scripts print short status lines on stdout. Streaming them
+#' as they arrive keeps the order sensible (uv check, venv creation,
+#' ready) and avoids the trailing blank line that printing the captured
+#' stdout as one block produced.
+#'
+#' @param line One complete line of stdout, terminator stripped.
+#' @param proc The processx handle, unused.
+#'
+#' @keywords internal
+#' @noRd
+echo_line <- function(line, proc) {
+  if (nzchar(trimws(line))) message(line)
 }

@@ -52,6 +52,41 @@ test_that("initialize_python(groups = NULL) sends no group args", {
   expect_equal(length(captured$first_args), 3L)
 })
 
+test_that("initialize_python treats an empty prompt response as Y", {
+  skip_on_os("windows")
+  proj <- tempfile()
+  dir.create(proj)
+  seed_test_toml(proj)
+  withr::local_options(list(venv_dir = proj))
+
+  captured <- new.env()
+  # readline() returns "" when a script is source()d or Enter is pressed
+  mockery::stub(initialize_python, "continue", function() "")
+  mockery::stub(initialize_python, "get_uv_path", function(...) "/fake/uv")
+  mockery::stub(initialize_python, "system.file", function(...) "/fake/cmd")
+  mockery::stub(
+    initialize_python, "processx::run", stub_processx_capture(captured)
+  )
+
+  expect_no_error(initialize_python(uv_version = "0.7.8", groups = NULL))
+  expect_equal(length(captured$first_args), 3L)
+})
+
+test_that("initialize_python still rejects an invalid prompt response", {
+  skip_on_os("windows")
+  proj <- tempfile()
+  dir.create(proj)
+  seed_test_toml(proj)
+  withr::local_options(list(venv_dir = proj))
+
+  mockery::stub(initialize_python, "continue", function() "maybe")
+
+  expect_error(
+    initialize_python(uv_version = "0.7.8", groups = NULL),
+    "Must enter Y or n"
+  )
+})
+
 test_that("initialize_python(groups = 'reportifyr') appends group name", {
   skip_on_os("windows")
   proj <- tempfile()

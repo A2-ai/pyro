@@ -87,11 +87,15 @@ if (-not $uvCmd) {
         Write-Host "uv $installedVer != required $UvVersion; installing $UvVersion..."
         Install-Uv -Version $UvVersion
     } else {
-        Write-Host "Using existing uv $installedVer."
+        Write-Host "Using existing uv $installedVer"
     }
 }
 
 $env:UV_PROJECT_ENVIRONMENT = Join-Path $VenvDirectory '.venv'
+
+if (-not (Test-Path -LiteralPath $env:UV_PROJECT_ENVIRONMENT -PathType Container)) {
+    Write-Host "Creating virtual environment at .venv"
+}
 
 # Refresh the lock to match the toml. uv lock is a no-op when the lock
 # is already up-to-date; if the user edited pyproject.toml or pyro
@@ -115,4 +119,4 @@ if ($LASTEXITCODE -ne 0) {
     throw "uv sync failed with exit $LASTEXITCODE"
 }
 
-Write-Host "Python environment ready at $($env:UV_PROJECT_ENVIRONMENT)"
+Write-Host "Python environment ready"
