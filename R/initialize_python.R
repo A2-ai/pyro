@@ -14,7 +14,7 @@
 #' @param continue Optional. `"Y"` / `"n"` or `TRUE` / `FALSE` to
 #'   bypass the interactive prompt. The same prompt covers both the uv
 #'   install and the seed step (when the project has no `pyproject.toml`
-#'   yet).
+#'   yet). At the prompt, pressing Enter accepts the default (`Y`).
 #' @param venv_dir Parent directory of `.venv/`. Defaults to
 #'   [get_proj_dir()].
 #' @param uv_version Version of uv to install. Defaults to

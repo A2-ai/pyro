@@ -16,7 +16,7 @@ initialize_python(
 \item{continue}{Optional. \code{"Y"} / \code{"n"} or \code{TRUE} / \code{FALSE} to
 bypass the interactive prompt. The same prompt covers both the uv
 install and the seed step (when the project has no \code{pyproject.toml}
-yet).}
+yet). At the prompt, pressing Enter accepts the default (\code{Y}).}
 
 \item{venv_dir}{Parent directory of \verb{.venv/}. Defaults to
 \code{\link[=get_proj_dir]{get_proj_dir()}}.}

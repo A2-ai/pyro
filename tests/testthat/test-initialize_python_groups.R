@@ -60,7 +60,8 @@ test_that("initialize_python treats an empty prompt response as Y", {
   withr::local_options(list(venv_dir = proj))
 
   captured <- new.env()
-  # readline() returns "" when a script is source()d or Enter is pressed
+  # readline() returns "" when the user presses Enter, which accepts the
+  # capitalised default in [Y/n]
   mockery::stub(initialize_python, "continue", function() "")
   mockery::stub(initialize_python, "get_uv_path", function(...) "/fake/uv")
   mockery::stub(initialize_python, "system.file", function(...) "/fake/cmd")
