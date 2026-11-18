@@ -6,9 +6,11 @@ r_version = "4.5"
 
 repositories = [
 	{ alias = "PRISM", url = "https://prism.dev.a2-ai.cloud/rpkgs/stratus/2026-04-30/" },
+	{ alias = "starlightr", url = "https://prism.dev.a2-ai.cloud/rpkgs/starlightr/latest/" },
 ]
 
 dependencies = [
 	{ name = "pyro", path = ".", dependencies_only = true, install_suggestions = true },
 	"devtools",
+	{ name = "starlightr", repository = "starlightr", install_suggestions = true },
 ]
