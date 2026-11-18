@@ -76,7 +76,7 @@ else
     echo "uv $installed_ver != required $UV_VERSION; installing $UV_VERSION..."
     install_uv "$UV_VERSION"
   else
-    echo "Using existing uv $installed_ver."
+    echo "Using existing uv $installed_ver"
   fi
 fi
 
@@ -85,6 +85,10 @@ fi
 # --inexact + --group X (with DEP_GROUPS): additively install named groups,
 #   leaving extraneous packages from previous syncs in place.
 export UV_PROJECT_ENVIRONMENT="$VENV_DIR/.venv"
+
+if [ ! -d "$UV_PROJECT_ENVIRONMENT" ]; then
+  echo "Creating virtual environment at .venv"
+fi
 
 # Refresh the lock to match the toml. uv lock is a no-op when the lock
 # is already up-to-date; if the user edited pyproject.toml or pyro
@@ -108,4 +112,4 @@ else
     "${GROUP_ARGS[@]}"
 fi
 
-echo "Python environment ready at $UV_PROJECT_ENVIRONMENT"
+echo "Python environment ready"

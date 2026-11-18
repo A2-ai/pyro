@@ -26,9 +26,11 @@ run_python_script(
 \item{pythonpath}{Optional directory to expose as \code{PYTHONPATH} (for
 host packages whose Python modules live under their \verb{inst/python/}).}
 
-\item{stderr_callback}{Optional \verb{function(chunk, proc)} callback passed
-to \code{\link[processx:run]{processx::run()}} as \code{stderr_callback}. If \code{NULL}, stderr is
-streamed to the console unchanged via \code{cat()}.}
+\item{stderr_callback}{Optional \verb{function(line, proc)} callback invoked
+once per complete line of stderr, with the line terminator stripped.
+If \code{NULL}, stderr is streamed to the console via \code{cat()}. Lines are
+reassembled before dispatch, so a callback never sees a partial line
+(see Details).}
 
 \item{verbose_env}{Optional name of an environment variable to surface
 to the subprocess (for example, the caller's verbosity control).}

@@ -19,7 +19,7 @@ get_venv_uv_paths <- function() {
     message("Setting options('venv_dir') to project root.")
     options("venv_dir" = get_proj_dir())
   }
-  venv_path <- file.path(getOption("venv_dir"), ".venv")
+  venv_path <- file.path(get_proj_dir(), ".venv")
 
   if (!dir.exists(venv_path)) {
     log4r::error(
