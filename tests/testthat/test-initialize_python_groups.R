@@ -156,8 +156,79 @@ test_that("initialize_python passes pyproject_dir as the toml_dir arg", {
   )
 
   # args: venv_dir, pyproject_dir, uv_version, group
-  expect_equal(captured$first_args[[2]], proj)
+  expect_equal(captured$first_args[[2]], normalizePath(proj, winslash = "/"))
   expect_equal(captured$first_args[[4]], "reportifyr")
+})
+
+test_that("initialize_python hands the setup script absolute paths", {
+  skip_on_os("windows")
+  parent <- withr::local_tempdir()
+  proj <- file.path(parent, "proj")
+  dir.create(proj)
+  seed_test_toml(proj)
+  withr::local_dir(parent)
+  withr::local_options(list(venv_dir = NULL))
+
+  captured <- new.env()
+  mockery::stub(initialize_python, "get_uv_path", function(...) "/fake/uv")
+  mockery::stub(initialize_python, "system.file", function(...) "/fake/cmd")
+  mockery::stub(
+    initialize_python, "processx::run", stub_processx_capture(captured)
+  )
+
+  expect_message(
+    initialize_python(
+      continue = "Y", uv_version = "0.7.8", venv_dir = "proj/"
+    ),
+    paste0("Preparing Python environment in ", normalizePath(proj)),
+    fixed = TRUE
+  )
+
+  expected <- normalizePath(proj, winslash = "/")
+  expect_equal(captured$first_args[[1]], expected)
+  expect_equal(captured$first_args[[2]], expected)
+  # The cached root must not depend on the working directory.
+  expect_equal(getOption("venv_dir"), expected)
+})
+
+test_that("initialize_python expands ~ before calling the setup script", {
+  skip_on_os("windows")
+  home <- withr::local_tempdir()
+  dir.create(file.path(home, "proj"))
+  seed_test_toml(file.path(home, "proj"))
+  withr::local_envvar(HOME = home)
+  withr::local_options(list(venv_dir = NULL))
+
+  captured <- new.env()
+  mockery::stub(initialize_python, "get_uv_path", function(...) "/fake/uv")
+  mockery::stub(initialize_python, "system.file", function(...) "/fake/cmd")
+  mockery::stub(
+    initialize_python, "processx::run", stub_processx_capture(captured)
+  )
+
+  suppressMessages(initialize_python(
+    continue = "Y", uv_version = "0.7.8", venv_dir = "~/proj"
+  ))
+
+  expected <- normalizePath(file.path(home, "proj"), winslash = "/")
+  expect_equal(captured$first_args[[1]], expected)
+  expect_equal(captured$first_args[[2]], expected)
+})
+
+test_that("abs_path handles nonexistent, trailing-slash and invalid input", {
+  skip_on_os("windows")
+  parent <- withr::local_tempdir()
+  withr::local_dir(parent)
+  root <- normalizePath(parent, winslash = "/")
+
+  expect_equal(abs_path("not/there/"), file.path(root, "not/there"))
+  expect_equal(abs_path("/not/there//"), "/not/there")
+  expect_equal(abs_path("/not//there"), "/not/there")
+  expect_equal(abs_path("/"), "/")
+  expect_equal(abs_path("."), root)
+  expect_error(abs_path(""), "single non-empty path")
+  expect_error(abs_path(NA_character_), "single non-empty path")
+  expect_error(abs_path(c("a", "b"), "venv_dir"), "`venv_dir` must be")
 })
 
 test_that("initialize_python seeds pyproject.toml when missing", {

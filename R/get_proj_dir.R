@@ -20,5 +20,11 @@
 #' get_proj_dir()
 #' }
 get_proj_dir <- function() {
-  getOption("venv_dir") %||% here::here()
+  opt <- getOption("venv_dir")
+  if (is.null(opt)) {
+    return(here::here())
+  }
+  root <- abs_path(opt, "options('venv_dir')")
+  if (!identical(root, opt)) options(venv_dir = root)
+  root
 }

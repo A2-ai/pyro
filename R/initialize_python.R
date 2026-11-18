@@ -16,7 +16,8 @@
 #'   install and the seed step (when the project has no `pyproject.toml`
 #'   yet). At the prompt, pressing Enter accepts the default (`Y`).
 #' @param venv_dir Parent directory of `.venv/`. Defaults to
-#'   [get_proj_dir()].
+#'   [get_proj_dir()]. `~` and relative paths are accepted and converted
+#'   to an absolute path, as they are for `pyproject_dir`.
 #' @param uv_version Version of uv to install. Defaults to
 #'   `getOption("uv.version")`. When `NULL` (option unset), behavior
 #'   is: if uv is already installed, its existing version is used (no
@@ -53,7 +54,12 @@ initialize_python <- function(continue = NULL,
                               pyproject_dir = NULL) {
   log4r::debug(.le$logger, "Starting initialize_python function")
 
-  if (is.null(pyproject_dir)) pyproject_dir <- venv_dir
+  venv_dir <- abs_path(venv_dir, "venv_dir")
+  pyproject_dir <- if (is.null(pyproject_dir)) {
+    venv_dir
+  } else {
+    abs_path(pyproject_dir, "pyproject_dir")
+  }
 
   message("Preparing Python environment in ", venv_dir)
 

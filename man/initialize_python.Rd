@@ -19,7 +19,8 @@ install and the seed step (when the project has no \code{pyproject.toml}
 yet). At the prompt, pressing Enter accepts the default (\code{Y}).}
 
 \item{venv_dir}{Parent directory of \verb{.venv/}. Defaults to
-\code{\link[=get_proj_dir]{get_proj_dir()}}.}
+\code{\link[=get_proj_dir]{get_proj_dir()}}. \code{~} and relative paths are accepted and converted
+to an absolute path, as they are for \code{pyproject_dir}.}
 
 \item{uv_version}{Version of uv to install. Defaults to
 \code{getOption("uv.version")}. When \code{NULL} (option unset), behavior
