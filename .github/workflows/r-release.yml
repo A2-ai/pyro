@@ -298,7 +298,12 @@ jobs:
         uses: a2-ai/setup-rv@main
 
       - name: Skip docs dependencies
+        if: runner.os != 'Windows'
         run: rv remove --no-sync starlightr
+
+      - name: Skip docs dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: rv.exe remove --no-sync starlightr
 
       # -- macOS prep (static linking) --------------------------------------
       - name: Prepare macOS for static linking

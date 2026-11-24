@@ -43,7 +43,12 @@ jobs:
       - uses: a2-ai/setup-rv@main
 
       - name: Skip docs dependencies
+        if: runner.os != 'Windows'
         run: rv remove --no-sync starlightr
+
+      - name: Skip docs dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: rv.exe remove --no-sync starlightr
 
       - name: replace-rversion
         run: |
@@ -78,6 +83,8 @@ jobs:
       - name: rv-sysdeps-install (Linux)
         if: runner.os == 'Linux'
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev
           MISSING_DEPS=$(rv plan --json | jq -r '.installed[].sys_deps[]? | select(.status == "absent") | .name')
           if [ -n "$MISSING_DEPS" ]; then
             echo "Found missing system dependencies:"
