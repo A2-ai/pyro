@@ -68,9 +68,9 @@ jobs:
           # bare-metal (macOS, Windows) entries omit it.
           MATRIX_JSON=$(cat <<'JSON'
           [
-            {"os":"macos-14",       "os_name":"macos",      "arch":"arm64",  "r":"4.4"},
-            {"os":"macos-14",       "os_name":"macos",      "arch":"arm64",  "r":"4.5"},
-            {"os":"macos-14",       "os_name":"macos",      "arch":"arm64",  "r":"4.6"},
+            {"os":"macos-latest",   "os_name":"macos",      "arch":"arm64",  "r":"4.4"},
+            {"os":"macos-latest",   "os_name":"macos",      "arch":"arm64",  "r":"4.5"},
+            {"os":"macos-latest",   "os_name":"macos",      "arch":"arm64",  "r":"4.6"},
             {"os":"windows-latest", "os_name":"windows",    "arch":"x64",    "r":"4.4"},
             {"os":"windows-latest", "os_name":"windows",    "arch":"x64",    "r":"4.5"},
             {"os":"windows-latest", "os_name":"windows",    "arch":"x64",    "r":"4.6"},
