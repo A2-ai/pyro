@@ -42,6 +42,14 @@ jobs:
 
       - uses: a2-ai/setup-rv@main
 
+      - name: Skip docs dependencies
+        if: runner.os != 'Windows'
+        run: rv remove --no-sync starlightr
+
+      - name: Skip docs dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: rv.exe remove --no-sync starlightr
+
       - name: replace-rversion
         run: |
           perl -i -pe 's|^r_version = "4\.[0-9\.]+"$|r_version = "${{ matrix.config.r }}"|' rproject.toml
@@ -72,18 +80,14 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
 
-      - name: rv-sysdeps-install (Linux)
+      - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          MISSING_DEPS=$(rv plan --json | jq -r '.installed[].sys_deps[]? | select(.status == "absent") | .name')
-          if [ -n "$MISSING_DEPS" ]; then
-            echo "Found missing system dependencies:"
-            echo "$MISSING_DEPS"
-            echo "Installing..."
-            echo "$MISSING_DEPS" | xargs sudo apt install
-          else
-            echo "All system dependencies are present"
-          fi
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcurl4-openssl-dev libuv1-dev libgit2-dev libssl-dev libxml2-dev zlib1g-dev \
+            libfontconfig-dev libfreetype-dev libfribidi-dev libharfbuzz-dev \
+            libjpeg-dev libpng-dev libtiff-dev libwebp-dev
 
       - name: rv-sync
         run: rv sync

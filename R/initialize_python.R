@@ -14,9 +14,10 @@
 #' @param continue Optional. `"Y"` / `"n"` or `TRUE` / `FALSE` to
 #'   bypass the interactive prompt. The same prompt covers both the uv
 #'   install and the seed step (when the project has no `pyproject.toml`
-#'   yet).
+#'   yet). At the prompt, pressing Enter accepts the default (`Y`).
 #' @param venv_dir Parent directory of `.venv/`. Defaults to
-#'   [get_proj_dir()].
+#'   [get_proj_dir()]. `~` and relative paths are accepted and converted
+#'   to an absolute path, as they are for `pyproject_dir`.
 #' @param uv_version Version of uv to install. Defaults to
 #'   `getOption("uv.version")`. When `NULL` (option unset), behavior
 #'   is: if uv is already installed, its existing version is used (no
@@ -53,17 +54,25 @@ initialize_python <- function(continue = NULL,
                               pyproject_dir = NULL) {
   log4r::debug(.le$logger, "Starting initialize_python function")
 
-  if (is.null(pyproject_dir)) pyproject_dir <- venv_dir
+  venv_dir <- abs_path(venv_dir, "venv_dir")
+  pyproject_dir <- if (is.null(pyproject_dir)) {
+    venv_dir
+  } else {
+    abs_path(pyproject_dir, "pyproject_dir")
+  }
+
+  message("Preparing Python environment in ", venv_dir)
 
   if (is.null(continue)) continue <- continue()
   if (is.logical(continue)) continue <- if (continue) "Y" else "n"
+  if (!nzchar(trimws(continue))) continue <- "Y"
 
   if (tolower(continue) != "y") {
     if (continue == "n") {
       log4r::info(.le$logger, "User declined installation. No changes made.")
-      message(
-        "User declined installation of uv, Python, and Python dependencies.\n
-        Full functionality will not be available."
+      pyro_message(
+        "Installation declined. Python-backed features will not be ",
+        "available until initialize_python() is run."
       )
     } else {
       log4r::error(.le$logger, "Invalid response from user. Must enter Y or n.")
@@ -83,7 +92,12 @@ initialize_python <- function(continue = NULL,
   toml_path <- file.path(pyproject_dir, "pyproject.toml")
   if (!file.exists(toml_path)) {
     seed_pyproject(pyproject_dir, groups)
-    message(paste0("Seeded ", toml_path, " from pyro's bundled spec."))
+    shown <- if (identical(pyproject_dir, venv_dir)) {
+      "pyproject.toml"
+    } else {
+      toml_path
+    }
+    message("Seeded ", shown, " from pyro's bundled spec")
   }
 
   audit_pins(pyproject_dir, groups)
@@ -131,7 +145,11 @@ initialize_python <- function(continue = NULL,
     log4r::info(.le$logger, paste0(
       "ps_args: ", paste(ps_args, collapse = ", ")
     ))
-    result <- processx::run(command = "powershell.exe", args = ps_args)
+    result <- processx::run(
+      command = "powershell.exe",
+      args = ps_args,
+      stdout_line_callback = echo_line
+    )
   } else {
     sh_args <- c(venv_dir, pyproject_dir, uv_version)
     if (!is.null(groups) && length(groups) > 0) {
@@ -140,17 +158,18 @@ initialize_python <- function(continue = NULL,
     log4r::info(.le$logger, paste0(
       "sh_args: ", paste(sh_args, collapse = ", ")
     ))
-    result <- processx::run(command = cmd, args = sh_args)
+    result <- processx::run(
+      command = cmd,
+      args = sh_args,
+      stdout_line_callback = echo_line
+    )
   }
 
   if (is_new_env) {
     log4r::info(.le$logger, paste("Virtual environment created at:", venv_path))
-    message(paste("Created Python virtual environment at", venv_path))
   } else {
     log4r::info(.le$logger, paste("Virtual environment synced at:", venv_path))
   }
-
-  message(result$stdout)
 
   log4r::debug(.le$logger, "Exiting initialize_python function")
   invisible(NULL)
@@ -280,12 +299,13 @@ continue <- function() {
       "Prompting user for confirmation to install uv, Python,
 			and the pinned Python dependencies to your local files."
     )
-    readline(
-      "If uv, Python, and Python dependencies are not installed, this
-			\nwill install them. If your project has no pyproject.toml,
-			\none will be created at the project root.
-			\nAre you sure you want to continue? [Y/n]\n"
+
+    pyro_message(
+      "Anything missing (uv, Python, the pinned dependencies) will be ",
+      "installed. A pyproject.toml is created if the project has none.",
+      indent = 2L
     )
+    readline("Continue? [Y/n] ")
   } else {
     log4r::info(
       .le$logger,
@@ -293,4 +313,20 @@ continue <- function() {
     )
     "Y"
   }
+}
+
+#' Relay one line of installer output to the console
+#'
+#' The setup scripts print short status lines on stdout. Streaming them
+#' as they arrive keeps the order sensible (uv check, venv creation,
+#' ready) and avoids the trailing blank line that printing the captured
+#' stdout as one block produced.
+#'
+#' @param line One complete line of stdout, terminator stripped.
+#' @param proc The processx handle, unused.
+#'
+#' @keywords internal
+#' @noRd
+echo_line <- function(line, proc) {
+  if (nzchar(trimws(line))) message(line)
 }

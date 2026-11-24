@@ -1,6 +1,6 @@
 Package: pyro
 Title: Manage Python Environments in R with uv 
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
     person("Jacob", "Dumbleton", , "jacob@a2-ai.com", role = c("aut", "cre")),
     person("Matthew", "Smith", , "matthews@a2-ai.com", role = "aut")
@@ -25,4 +25,5 @@ Suggests:
     testthat (>= 3.0.0),
     withr
 VignetteBuilder: knitr
+URL: https://a2-ai.github.io/pyro-docs, https://github.com/a2-ai/pyro
 Config/testthat/edition: 3

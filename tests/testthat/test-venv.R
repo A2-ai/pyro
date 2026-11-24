@@ -68,5 +68,5 @@ test_that("get_venv_uv_paths returns correct paths", {
   result <- get_venv_uv_paths()
   expect_type(result, "list")
   expect_equal(result$uv, "~/.local/bin/uv")
-  expect_equal(result$venv, venv_path)
+  expect_equal(result$venv, normalizePath(venv_path, winslash = "/"))
 })

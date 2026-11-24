@@ -1,3 +1,20 @@
+# pyro 0.1.2
+
+## Breaking Changes
+
+* `run_python_script()` now calls `stderr_callback` once per line, with the line ending removed. Callbacks written for raw chunks need to add their own newline. Before this a line could be split across two calls, which broke filtering on level tags like `[DEBUG]`.
+
+## Bug Fixes
+
+* `initialize_python()` now accepts `~` and relative paths for `venv_dir`, `pyproject_dir`, and `options("venv_dir")`. These used to fail in the setup script or put `.venv` in the wrong folder.
+* Pressing Enter at the `Continue? [Y/n]` prompt now means yes. It used to error with "Must enter Y or n."
+* The prompt is now a single line, so the cursor lands after the question in RStudio instead of in the middle of it.
+
+## Minor Improvements
+
+* `initialize_python()` prints the project root once, then refers to files relative to it (`pyproject.toml`, `.venv`).
+* Setup script output streams as it happens instead of printing in one block at the end.
+
 # pyro 0.1.1
 
 ## Bug fixes

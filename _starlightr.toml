@@ -1,0 +1,57 @@
+[site]
+title = "pyro"
+description = "uv-backed Python environment management for the fyr ecosystem"
+logo = "man/figures/logo.png"
+
+[output]
+dir = "../pyro-docs"
+include_build_files = true
+
+[reference]
+skip_sections = ["title", "name", "alias", "doc type", "keyword"]
+section_order = ["Description", "Details"]
+include_pagefind = true
+
+[theme]
+color_mode = "auto"
+
+[versions]
+enabled = true
+list = [{ tag = "0.1.1", label = "v0.1.1", default = true }]
+
+[home]
+hero = { tagline = "uv-backed Python environment management for the fyr R-package ecosystem", actions = [
+  { text = "Get Started", link = "./articles/readme/", icon = "right-arrow", variant = "primary" },
+  { text = "View on GitHub", link = "https://github.com/a2-ai/pyro", icon = "external", variant = "minimal" },
+] }
+cards = [
+  { icon = "rocket", title = "How pyro works", description = "The pyproject.toml-as-source-of-truth lifecycle: seed, register, audit, lock + sync", link = "./articles/how-it-works/" },
+  { icon = "puzzle", title = "Authoring a fyr-package", description = "Compose write_group_to_pyproject() + initialize_python() in a sibling wrapper", link = "./articles/authoring-a-fyr-package/" },
+  { icon = "open-book", title = "Reference", description = "Full reference for the pyro public API", link = "./reference/pyro/" },
+]
+
+[sidebar]
+articles = [
+  { label = "Getting Started", contents = [
+    { slug = "README", label = "Welcome" },
+    { slug = "how-it-works", label = "How pyro Works" },
+    { slug = "authoring-a-fyr-package", label = "Authoring a fyr-package" },
+  ] },
+]
+reference = [
+  "pyro",
+  { label = "Project Setup", collapsed = true, contents = [
+    "initialize_python",
+    "write_group_to_pyproject",
+    "get_proj_dir",
+  ] },
+  { label = "Runtime", collapsed = true, contents = [
+    "get_venv_uv_paths",
+    "run_python_script",
+    "get_uv_path",
+    "get_uv_version",
+  ] },
+]
+
+[navbar]
+right = [{ icon = "github", href = "https://github.com/a2-ai/pyro" }]
