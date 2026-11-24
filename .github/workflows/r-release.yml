@@ -140,6 +140,9 @@ jobs:
       - name: Install the latest version of rv
         uses: a2-ai/setup-rv@main
 
+      - name: Skip docs dependencies
+        run: rv remove --no-sync starlightr
+
       # pyro itself is pure R, but `rv sync` installs the dev dependency tree
       # (devtools, etc.), which links against libgit2 and libcurl. powertools +
       # epel provide the -devel packages on AlmaLinux 8.
@@ -293,6 +296,9 @@ jobs:
       # -- Install rv -------------------------------------------------------
       - name: Install the latest version of rv
         uses: a2-ai/setup-rv@main
+
+      - name: Skip docs dependencies
+        run: rv remove --no-sync starlightr
 
       # -- macOS prep (static linking) --------------------------------------
       - name: Prepare macOS for static linking

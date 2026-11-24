@@ -42,6 +42,9 @@ jobs:
 
       - uses: a2-ai/setup-rv@main
 
+      - name: Skip docs dependencies
+        run: rv remove --no-sync starlightr
+
       - name: replace-rversion
         run: |
           perl -i -pe 's|^r_version = "4\.[0-9\.]+"$|r_version = "${{ matrix.config.r }}"|' rproject.toml
