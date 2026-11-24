@@ -21,7 +21,7 @@
 #   2. Search for FIXME comments and set the values for your project.
 #   3. Configure your repo with the required secrets and variables:
 #        - vars.PRISM_API_URL   -- Base URL of your PRISM instance
-#        - secrets.PRISM_API_TOKEN -- API token for authentication
+#        - secrets.PRISM_API_KEY -- API token for authentication
 #   4. The workflow triggers automatically after R Release completes, or
 #      you can run it manually from the Actions tab.
 # =============================================================================
@@ -111,11 +111,11 @@ jobs:
         id: check-config
         env:
           PRISM_API_URL: ${{ vars.PRISM_API_URL }}
-          PRISM_API_TOKEN: ${{ secrets.PRISM_API_TOKEN }}
+          PRISM_API_KEY: ${{ secrets.PRISM_API_KEY }}
         run: |
           MISSING=""
           [ -z "$PRISM_API_URL" ] && MISSING="${MISSING}vars.PRISM_API_URL "
-          [ -z "$PRISM_API_TOKEN" ] && MISSING="${MISSING}secrets.PRISM_API_TOKEN "
+          [ -z "$PRISM_API_KEY" ] && MISSING="${MISSING}secrets.PRISM_API_KEY "
 
           if [ -n "$MISSING" ]; then
             if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -235,7 +235,7 @@ jobs:
         uses: A2-ai/r-releaser/deploy-prism@deploy-prism
         with:
           prism_api_url: ${{ vars.PRISM_API_URL }}
-          auth_token: ${{ secrets.PRISM_API_TOKEN }}
+          auth_token: ${{ secrets.PRISM_API_KEY }}
           release_tag: ${{ needs.resolve-inputs.outputs.tag }}
           no_sys_deps: ${{ needs.resolve-inputs.outputs.no_sys_deps }}
           # PRISM rejects Windows .zip binaries ("invalid gzip header"); skip them
@@ -249,7 +249,7 @@ jobs:
         uses: A2-ai/r-releaser/update-edition@deploy-prism
         with:
           prism_api_url: ${{ vars.PRISM_API_URL }}
-          auth_token: ${{ secrets.PRISM_API_TOKEN }}
+          auth_token: ${{ secrets.PRISM_API_KEY }}
           registry: ${{ needs.resolve-inputs.outputs.registry }}
           edition: ${{ needs.resolve-inputs.outputs.edition }}
           package_name: ${{ needs.resolve-inputs.outputs.package_name }}
@@ -263,7 +263,7 @@ jobs:
         uses: A2-ai/r-releaser/create-edition@deploy-prism
         with:
           prism_api_url: ${{ vars.PRISM_API_URL }}
-          auth_token: ${{ secrets.PRISM_API_TOKEN }}
+          auth_token: ${{ secrets.PRISM_API_KEY }}
           package_name: ${{ needs.resolve-inputs.outputs.package_name }}
           package_version: ${{ needs.resolve-inputs.outputs.package_version }}
           latest: ${{ needs.resolve-inputs.outputs.latest_edition }}
